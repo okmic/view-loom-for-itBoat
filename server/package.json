@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "dev": "nodemon src/cmd/main.ts"
+  },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",
@@ -21,6 +24,9 @@
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
-    "@types/winston": "^2.4.4"
+    "@types/winston": "^2.4.4",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

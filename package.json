@@ -1,0 +1,16 @@
+{
+  "name": "view-loom",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/okmic/view-loom-for-itBoat.git",
+  "author": "okmic <okmic.g@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "server:dev": "cd server && yarn dev",
+    "client:dev": "cd client && yarn dev",
+    "start:dev": "'command1 arg' 'command2 arg'"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
