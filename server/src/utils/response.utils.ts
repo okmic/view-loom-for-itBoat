@@ -1,5 +1,5 @@
-import { FastifyReply } from "fastify";
-import { ErrorBadRequest, ErrorForbidden, ErrorNotAuth } from "../modules/errors";
+import { FastifyReply } from "fastify"
+import { ErrorBadRequest, ErrorForbidden, ErrorNotAuth } from "../modules/errors"
 
 export const successResponse = async (msg: string, data: any, reply: FastifyReply, status: number = 200) => {
     return reply

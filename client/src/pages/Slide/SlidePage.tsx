@@ -1,34 +1,26 @@
+import { useState } from 'react'
+import { useSelector } from 'react-redux'
 import Slider from './components/Slider/Slider'
-import { Slide1 } from './components/Slides/Slide1'
-import { Slide2 } from './components/Slides/Slide2'
-import { Slide3 } from './components/Slides/Slide3'
-import { Slide4 } from './components/Slides/Slide4'
-import { Slide5 } from './components/Slides/Slide5'
-import { Slide6 } from './components/Slides/Slide6'
-import { Slide7 } from './components/Slides/Slide7'
-import { Slide8 } from './components/Slides/Slide8'
+import type { RootState } from '../../store/store'
+import SlideSelector from './components/Slide/SlideSelector'
+import { SlideItem } from './components/Slide/SlideItem'
 
 function SlidePage() {
-  const timeMarks = [
-    24000,
-    52000,
-    75000,
-    99000,
-    123000,
-    147000,
-    166000
+  const slides = useSelector((s: RootState) => s.slide.slides)
+  const [selectedSlideName, setSelectedSlideName] = useState<string>('')
+  const currentSlide = slides.find(s => s.name === selectedSlideName)
+  if (!selectedSlideName || !currentSlide) {
+    return <SlideSelector slides={slides} onSlideSelect={setSelectedSlideName} />
+  }
+  const slideComponents = [
+    <SlideItem key="slide1" slide={currentSlide.Slides[0]} />,
+    ...currentSlide.Slides.map((slide, index) => (
+      <SlideItem key={`slide-${index}`} slide={slide} />
+    ))
   ]
-
   return (
-    <Slider timeMarks={timeMarks}>
-      <Slide1 />
-      <Slide2 />
-      <Slide3 />
-      <Slide4 />
-      <Slide5 />
-      <Slide6 />
-      <Slide7 />
-      <Slide8 />
+    <Slider slideData={currentSlide}>
+      {slideComponents}
     </Slider>
   )
 }

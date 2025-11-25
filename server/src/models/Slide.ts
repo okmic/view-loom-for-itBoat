@@ -3,16 +3,27 @@ import { DocSlideType } from "./types"
 const SlideSchema = new Schema<DocSlideType>({
   createdAt: { type: Date, default: null },
   updatedAt: { type: Date, default: Date.now },
-  title: { type: String, required: true },
-  title1: { type: String, required: true },
-  subTitle1: { type: String, required: true },
-  title2: { type: String, required: true },
-  subTitle2: { type: String, required: true },
-  title3: { type: String, required: true },
-  subTitle3: { type: String, required: true },
-  title4: { type: String, required: true },
-  subTitle4: { type: String, required: true },
-  footerTitle: { type: String, required: true },
+  startScreen: {
+    iconImgUrl: { type: String, required: false, default: null },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+  },
+  Slide1: {
+    iconImgUrl: { type: String, required: false, default: null },
+    title: { type: String, required: true },
+    subTitle: { type: String, required: true },
+  },
+  Slides: [
+    {
+      iconImgUrl: { type: String, required: false, default: null },
+      title: { type: String, required: true },
+      subTitle: { type: String, required: true },
+      list: [ { 
+        iconImgUrl: { type: String, required: false, default: null },
+        type: String, required: true,
+      } ],
+    }
+  ]
 })
 interface ISlideModel extends Model<DocSlideType> {}
 class SlideService {

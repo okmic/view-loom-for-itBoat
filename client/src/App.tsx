@@ -20,7 +20,6 @@ function MainApp() {
   useEffect(() => {
     const findSliders = async () => {
       const sliders = await apiSlidersService.getSlides()
-      console.log(sliders)
       if(sliders) {
         dispatch(authStatus({ status: "auth" }))
       } else {

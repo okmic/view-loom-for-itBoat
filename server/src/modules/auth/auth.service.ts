@@ -2,9 +2,7 @@ import { FastifyRequest } from "fastify"
 import { errorResponse } from "../../utils/response.utils"
 import { ErrorNotAuth } from "../errors"
 import config from "../../utils/config"
-
 class AuthService {
-
   public async cheackJwtInHeader(req: any, reply: any, next: () => void) {
     try {
       await req.jwtVerify({})
@@ -12,7 +10,6 @@ class AuthService {
       return errorResponse(new ErrorNotAuth("NOT AUTH"), reply)
     }
   }
-
   public async cheackRootJwtInHeader(req: FastifyRequest, reply: any, next: () => void) {
     try {
       const { secret } = await req.jwtVerify<{ secret: string }>()
@@ -21,7 +18,5 @@ class AuthService {
       return errorResponse(new ErrorNotAuth("NOT AUTH"), reply)
     }
   }
-
 }
-
 export default new AuthService()
