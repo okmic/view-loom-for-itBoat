@@ -8,10 +8,20 @@ import config from "../utils/config"
 import { cheackOrCreateInitFiles, getPath } from "../utils/helper"
 import AuthController from "../modules/auth/auth.controller"
 import { setupGlobalErrorHandlers } from "../utils/setupGlobalErrorHandlers"
-import { DatabaseService } from "../modules/db/db.service"
+import { logger } from "../modules/logger/logger"
+import slidersController from "../modules/sliders/sliders.controller"
+import DatabaseService from "../modules/db/db.service"
+import authService from "../modules/auth/auth.service"
 
 const startServer = async () => {
   const server = fastify({ logger: true })
+  try {
+    await DatabaseService.connect()
+    logger.log('DatabaseService initialized successfully')
+  } catch (error) {
+    logger.error('Failed to connect to database:', error)
+    process.exit(1)
+  }
   await server.register(formBody)
   await server.register(cookie)
   await server.register(fastifyJwt, {
@@ -30,28 +40,32 @@ const startServer = async () => {
     decorateReply: false
   })
   if (!server.jwt) throw new Error('JWT plugin not initialized')
-
   const authController = new AuthController(server)
-
   server.get('/api', async (_, reply) => reply.send({ msg: "pong" }))
-  server.post('/api/signin', authController.auth.bind(authController))
-
+  server.post('/api/signin', authController.signin.bind(authController))
+  server.get('/api/sliders', {
+    preHandler: authService.cheackJwtInHeader,
+    handler: slidersController.GET
+  })
+  server.get('/api/sliders/:_id', {
+    preHandler: authService.cheackJwtInHeader,
+    handler: slidersController.GET
+  })
   try {
     await cheackOrCreateInitFiles()
     setupGlobalErrorHandlers()
-    await DatabaseService.connect()
     await server.listen({
       port: config.PORT,
       host: '0.0.0.0'
     })
+    logger.log(`Server started on port ${config.PORT}`)
   } catch (err) {
     server.log.error(err)
     process.exit(1)
   }
 }
 
-startServer()
-.catch(err => {
+startServer().catch(err => {
   console.error('Server failed:', err)
   process.exit(1)
 })

@@ -8,9 +8,12 @@
   "scripts": {
     "server:dev": "cd server && yarn dev",
     "client:dev": "cd client && yarn dev",
-    "start:dev": "'command1 arg' 'command2 arg'"
+    "start:dev": "concurrently 'yarn server:dev' 'yarn client:dev'"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "lucide-react": "^0.554.0"
   }
 }

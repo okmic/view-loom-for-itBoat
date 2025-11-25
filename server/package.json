@@ -4,7 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon src/cmd/main.ts"
+    "dev": "nodemon src/cmd/main.ts",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:push": "drizzle-kit push:pg",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -16,15 +20,22 @@
     "@mikro-orm/postgresql": "^6.6.0",
     "@mikro-orm/reflection": "^6.6.0",
     "@prisma/adapter-pg": "^7.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
     "fastify": "^5.6.2",
+    "mongodb": "^7.0.0",
+    "mongoose": "^9.0.0",
     "pg": "^8.16.3",
+    "postgres": "^3.4.7",
     "winston": "^3.18.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
     "@types/winston": "^2.4.4",
+    "drizzle-kit": "^0.31.7",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
