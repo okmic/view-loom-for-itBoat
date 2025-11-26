@@ -8,20 +8,17 @@ const SlideSchema = new Schema<DocSlideType>({
     title: { type: String, required: true },
     description: { type: String, required: true },
   },
-  Slide1: {
-    iconImgUrl: { type: String, required: false, default: null },
-    title: { type: String, required: true },
-    subTitle: { type: String, required: true },
-  },
   Slides: [
     {
       iconImgUrl: { type: String, required: false, default: null },
       title: { type: String, required: true },
       subTitle: { type: String, required: true },
-      list: [ { 
+      list: [
+        { 
+        title: { type: String, required: true, },
         iconImgUrl: { type: String, required: false, default: null },
-        type: String, required: true,
-      } ],
+        }
+      ],
     }
   ]
 })

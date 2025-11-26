@@ -13,11 +13,11 @@ const slideSlice = createSlice({
   name: 'slides',
   initialState,
   reducers: {
-    setSlides(state, action: PayloadAction<{ slides: ISlide[] }>) {
-       state.slides = action.payload.slides
+    setSliders(state, action: PayloadAction<{ sliders: ISlide[] }>) {
+       state.slides = action.payload.sliders
     },
   }
 })
 
-export const { setSlides } = slideSlice.actions
+export const { setSliders } = slideSlice.actions
 export default slideSlice.reducer

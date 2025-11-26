@@ -8,19 +8,15 @@ import apiSlidersService from "./utils/api/api.sliders.service"
 import LoadingSpinner from "./ui/LoadingSpinner"
 import SlidePage from "./pages/Slide/SlidePage"
 import "./App.css"
+import { setSliders } from "./store/slices/slide.slice"
 function MainApp() {
   const auth = useSelector((s: RootState) => s.auth)
   const dispatch = useDispatch()
   useEffect(() => {
-    const getAiFlow = async () => {
-    }
-    getAiFlow()
-  }, [])
-
-  useEffect(() => {
     const findSliders = async () => {
       const sliders = await apiSlidersService.getSlides()
       if(sliders) {
+        dispatch(setSliders({ sliders }))
         dispatch(authStatus({ status: "auth" }))
       } else {
         dispatch(authStatus({ status: "notAuth" }))

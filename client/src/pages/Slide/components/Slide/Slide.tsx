@@ -3,21 +3,28 @@ import React from 'react'
 interface SlideProps {
   children: React.ReactNode
   isActive: boolean
+  transitionDirection?: 'next' | 'prev'
 }
 
-const Slide: React.FC<SlideProps> = ({ children, isActive }) => {
-  return (
-    <div className={`
-      absolute inset-0 
-      transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)]
-      transform-gpu will-change-transform
-      ${isActive 
-        ? 'opacity-100 translate-x-0 scale-100' 
-        : 'opacity-0 -translate-x-8 scale-95 blur-sm'
+const Slide: React.FC<SlideProps> = ({ children, isActive, transitionDirection = 'next' }) => {
+  const getTransitionClasses = () => {
+    const baseClasses = 'absolute inset-0 transition-all duration-1000 ease-out transform-gpu'
+    
+    if (isActive) {
+      return `${baseClasses} opacity-100 scale-100 translate-x-0`
+    } else {
+      if (transitionDirection === 'next') {
+        return `${baseClasses} opacity-0 scale-95 translate-x-8`
+      } else {
+        return `${baseClasses} opacity-0 scale-95 -translate-x-8`
       }
-    `}>
+    }
+  }
+
+  return (
+    <div className={getTransitionClasses()}>
       <div className="w-full h-full flex items-center justify-center p-6 lg:p-12">
-        <div className="max-w-4xl w-full bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-8 lg:p-12">
+        <div className="max-w-4xl w-full">
           {children}
         </div>
       </div>

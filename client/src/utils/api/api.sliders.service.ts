@@ -17,7 +17,7 @@ class ApiExportService {
         try {
             return await this.axiosInstance.get(
                 `${config.BACKEND_HOST}/api/sliders`
-            ).then(r => r.data || "")
+            ).then(r => r.data.slides || null)
         } catch (e) {
             return null
         }

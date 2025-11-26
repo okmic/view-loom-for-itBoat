@@ -12,7 +12,7 @@ export interface ISlide {
         iconImgUrl: string | null
         title: string
         subTitle: string
-        list: {
+        list?: {
             iconImgUrl: string | null
             title: string
         }[]

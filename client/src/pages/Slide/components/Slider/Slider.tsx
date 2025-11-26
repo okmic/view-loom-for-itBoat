@@ -17,36 +17,39 @@ const Slider: React.FC<SliderProps> = ({ children, slideData }) => {
   const [appState, setAppState] = useState<AppState>('initial')
   const [showAudioAlert, setShowAudioAlert] = useState(false)
   
-  const audioRef = useRef<HTMLAudioElement>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const animationRef = useRef<number>(0)
   const startTimeRef = useRef<number>(0)
   const currentTimeRef = useRef<number>(0)
 
-  const timeMarks = slideData.audioTimeMarks.length > 0 
+  const timeMarks = slideData.audioTimeMarks?.length > 0 
     ? slideData.audioTimeMarks 
-    : Array.from({ length: children.length - 1 }, (_, i) => (i + 1) * 15000)
+    : Array.from({ length: Math.max(children.length - 1, 0) }, (_, i) => (i + 1) * 15000)
 
   useEffect(() => {
-    const audioSource = slideData.mp3Link || ''
-    audioRef.current = new Audio(audioSource)
-    audioRef.current.preload = 'metadata'
+    if (slideData.mp3Link) {
+      audioRef.current = new Audio(slideData.mp3Link)
+      audioRef.current.preload = 'metadata'
 
-    const handleEnded = () => {
-      setIsPlaying(false)
-      setAppState('finished')
-      setCurrentSlide(0)
-    }
-
-    audioRef.current.addEventListener('ended', handleEnded)
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.removeEventListener('ended', handleEnded)
-        audioRef.current.pause()
+      const handleEnded = () => {
+        setIsPlaying(false)
+        setAppState('finished')
+        setCurrentSlide(0)
       }
-      if (animationRef.current) {
+
+      audioRef.current.addEventListener('ended', handleEnded)
+
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('ended', handleEnded)
+          audioRef.current.pause()
+        }
         cancelAnimationFrame(animationRef.current)
       }
+    }
+    
+    return () => {
+      cancelAnimationFrame(animationRef.current)
     }
   }, [slideData.mp3Link])
 
@@ -68,27 +71,35 @@ const Slider: React.FC<SliderProps> = ({ children, slideData }) => {
       setCurrentSlide(newSlide)
     }
 
+    if (!slideData.mp3Link && newSlide >= children.length - 1) {
+      if (elapsed >= (timeMarks[timeMarks.length - 1] || 0) + 5000) {
+        setIsPlaying(false)
+        setAppState('finished')
+        return
+      }
+    }
+
     animationRef.current = requestAnimationFrame(updateSlide)
-  }, [isPlaying, currentSlide, timeMarks])
+  }, [isPlaying, currentSlide, timeMarks, slideData.mp3Link, children.length])
 
   useEffect(() => {
     if (isPlaying) {
       startTimeRef.current = Date.now() - currentTimeRef.current
       animationRef.current = requestAnimationFrame(updateSlide)
     } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
-    }
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
+      cancelAnimationFrame(animationRef.current)
     }
   }, [isPlaying, updateSlide])
 
   const togglePlayPause = async () => {
+    if (!slideData.mp3Link) {
+      setIsPlaying(!isPlaying)
+      if (!isPlaying) {
+        setAppState('playing')
+      }
+      return
+    }
+
     if (!audioRef.current) return
 
     if (isPlaying) {
@@ -119,6 +130,14 @@ const Slider: React.FC<SliderProps> = ({ children, slideData }) => {
   }
 
   const startPresentation = async () => {
+    if (!slideData.mp3Link) {
+      setIsPlaying(true)
+      setAppState('playing')
+      currentTimeRef.current = 0
+      startTimeRef.current = Date.now()
+      return
+    }
+
     if (!audioRef.current) return
     
     try {
@@ -150,95 +169,92 @@ const Slider: React.FC<SliderProps> = ({ children, slideData }) => {
       }
     }
 
-    window.addEventListener('wheel', blockNavigation, { passive: false })
-    window.addEventListener('keydown', blockKeys)
-    window.addEventListener('touchstart', blockNavigation)
+    document.addEventListener('wheel', blockNavigation, { passive: false })
+    document.addEventListener('keydown', blockKeys)
+    document.addEventListener('touchstart', blockNavigation)
     
     return () => {
-      window.removeEventListener('wheel', blockNavigation)
-      window.removeEventListener('keydown', blockKeys)
-      window.removeEventListener('touchstart', blockNavigation)
+      document.removeEventListener('wheel', blockNavigation)
+      document.removeEventListener('keydown', blockKeys)
+      document.removeEventListener('touchstart', blockNavigation)
     }
   }, [appState])
 
-  const renderInitialScreen = () => (
-    <div className="relative w-full h-screen overflow-hidden select-none">
-      <Background />
-      
-      <div className="flex items-center justify-center h-full px-4 pb-20">
-        <div className="text-white text-center backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl max-w-md w-full">
-          <div className="flex justify-center mb-6">
-            <div className="p-3 bg-purple-500/20 rounded-2xl border border-purple-500/30">
-              <Headphones className="w-8 h-8 text-purple-300" />
+  if (appState === 'initial') {
+    return (
+      <div className="relative w-full h-screen overflow-hidden select-none">
+        <Background />
+        <div className="flex items-center justify-center h-full px-4 pb-20">
+          <div className="text-white text-center backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl max-w-md w-full">
+            <div className="flex justify-center mb-6">
+              <div className="p-3 bg-purple-500/20 rounded-2xl border border-purple-500/30">
+                <Headphones className="w-8 h-8 text-purple-300" />
+              </div>
             </div>
+            <h1 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent">
+              {slideData.startScreen.title}
+            </h1>
+            <p className="mb-6 text-white/70 text-sm leading-relaxed">
+              {slideData.startScreen.description}
+            </p>
+            {slideData.mp3Link && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6 backdrop-blur-lg">
+                <p className="text-yellow-200 text-xs flex items-center justify-center space-x-2">
+                  <Headphones className="w-4 h-4" />
+                  <span>Наденьте наушники для полного погружения</span>
+                </p>
+              </div>
+            )}
+            <button
+              onClick={startPresentation}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 backdrop-blur-lg border border-purple-400/30 transition-all duration-300 active:scale-95 text-white hover:from-purple-600 hover:to-pink-600 flex items-center justify-center space-x-3 text-sm font-medium shadow-lg"
+            >
+              <Play className="w-5 h-5" />
+              <span>Начать погружение</span>
+            </button>
           </div>
-          <h1 className="text-2xl font-bold mb-4 bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent">
-            {slideData.startScreen.title}
-          </h1>
-          <p className="mb-6 text-white/70 text-sm leading-relaxed">
-            {slideData.startScreen.description}
-          </p>
-          
-          {slideData.mp3Link && (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 mb-6 backdrop-blur-lg">
-              <p className="text-yellow-200 text-xs flex items-center justify-center space-x-2">
-                <Headphones className="w-4 h-4" />
-                <span>Наденьте наушники для полного погружения</span>
-              </p>
-            </div>
-          )}
-          
-          <button
-            onClick={startPresentation}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 backdrop-blur-lg border border-purple-400/30 transition-all duration-300 active:scale-95 text-white hover:from-purple-600 hover:to-pink-600 flex items-center justify-center space-x-3 text-sm font-medium shadow-lg"
-          >
-            <Play className="w-5 h-5" />
-            <span>Начать погружение</span>
-          </button>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
-  const renderFinishedScreen = () => (
-    <div className="relative w-full h-screen overflow-hidden select-none">
-      <Background />
-      
-      <div className="flex items-center justify-center h-full px-4 pb-20">
-        <div className="text-white text-center backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl max-w-md w-full">
-          <h1 className="text-2xl font-bold mb-4 bg-gradient-to-r from-green-200 to-blue-200 bg-clip-text text-transparent">
-            Презентация завершена!
-          </h1>
-          <p className="mb-6 text-white/70 text-sm">
-            Надеюсь, это было незабываемое путешествие
-          </p>
-          
-          <button
-            onClick={resetPresentation}
-            className="w-full py-4 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 transition-all duration-300 active:scale-95 text-white hover:bg-white/20 flex items-center justify-center space-x-3 text-sm font-medium"
-          >
-            <Play className="w-5 h-5" />
-            <span>Пережить заново</span>
-          </button>
+  if (appState === 'finished') {
+    return (
+      <div className="relative w-full h-screen overflow-hidden select-none">
+        <Background />
+        <div className="flex items-center justify-center h-full px-4 pb-20">
+          <div className="text-white text-center backdrop-blur-xl bg-white/5 p-8 rounded-3xl border border-white/10 shadow-2xl max-w-md w-full">
+            <h1 className="text-2xl font-bold mb-4 bg-gradient-to-r from-green-200 to-blue-200 bg-clip-text text-transparent">
+              Презентация завершена!
+            </h1>
+            <p className="mb-6 text-white/70 text-sm">
+              Надеюсь, это было незабываемое путешествие
+            </p>
+            <button
+              onClick={resetPresentation}
+              className="w-full py-4 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 transition-all duration-300 active:scale-95 text-white hover:bg-white/20 flex items-center justify-center space-x-3 text-sm font-medium"
+            >
+              <Play className="w-5 h-5" />
+              <span>Пережить заново</span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
-  const renderPresentation = () => (
+  return (
     <div className="relative w-full h-screen overflow-hidden select-none touch-pan-y">
       <Background />
-      
       <div className="w-full h-full flex items-center justify-center">
         <div className="max-w-full max-h-full">
-          {React.Children.map(children, (child, index) => (
-            <Slide isActive={index === currentSlide}>
+          {children.map((child, index) => (
+            <Slide key={index} isActive={index === currentSlide}>
               {child}
             </Slide>
           ))}
         </div>
       </div>
-      
       {showAudioAlert && (
         <div className="absolute top-6 left-1/2 transform -translate-x-1/2 z-50 max-w-sm w-full">
           <div className="bg-red-500/20 backdrop-blur-xl border border-red-500/30 rounded-xl p-4 shadow-2xl">
@@ -248,35 +264,24 @@ const Slider: React.FC<SliderProps> = ({ children, slideData }) => {
           </div>
         </div>
       )}
-
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
         <button
           onClick={togglePlayPause}
           className="p-4 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 transition-all duration-300 active:scale-95 hover:bg-white/30 shadow-2xl"
         >
-          {isPlaying ? (
-            <Pause className="w-6 h-6 text-white" />
-          ) : (
-            <Play className="w-6 h-6 text-white" />
-          )}
+          {isPlaying ? <Pause className="w-6 h-6 text-white" /> : <Play className="w-6 h-6 text-white" />}
         </button>
       </div>
-
       <div className="absolute bottom-6 right-6 z-10">
         <button
           onClick={resetPresentation}
           className="p-3 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 transition-all duration-300 active:scale-95 hover:bg-white/20 shadow-2xl"
-          title="С начала"
         >
           <RotateCcw className="w-5 h-5 text-white" />
         </button>
       </div>
     </div>
   )
-
-  if (appState === 'initial') return renderInitialScreen()
-  if (appState === 'finished') return renderFinishedScreen()
-  return renderPresentation()
 }
 
 export default Slider
